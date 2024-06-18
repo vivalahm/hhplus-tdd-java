@@ -1,6 +1,11 @@
 package io.hhplus.tdd.point;
 
+import io.hhplus.tdd.point.domain.UserPoint;
+import io.hhplus.tdd.point.repository.PointRepository;
+import io.hhplus.tdd.point.repository.PointRepositoryImpl;
+import io.hhplus.tdd.point.service.PointService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -20,6 +25,7 @@ class PointServiceTest {
      *  1. 포인트 조회 테스트, 사용자 ID로 조회시 0포인트를 반환한다.
      */
     @Test
+    @DisplayName("포인트 조회 테스트 - 사용자 ID로 조회시 0포인트를 반환한다.")
     void point_by_id_return_zero_point() {
         // given
         long id = 1L;
@@ -33,6 +39,7 @@ class PointServiceTest {
      *  2. 포인트 조회 테스트, 사용자 ID가 음수이면 IllegalArgumentException을 발생시킨다.
      */
     @Test
+    @DisplayName("포인트 조회 테스트 - 사용자 ID가 음수이면 IllegalArgumentException을 발생시킨다.")
     void point_by_negative_id_throw_exception() {
         // given
         long id = -1L;
@@ -44,6 +51,7 @@ class PointServiceTest {
      *  3. 포인트 충전 테스트, 사용자 ID로 충전시 충전된 포인트를 반환한다.
      */
     @Test
+    @DisplayName("포인트 충전 테스트 - 사용자 ID로 충전시 충전된 포인트를 반환한다.")
     void charge_by_id_return_charged_point() {
         // given
         long id = 1L;
@@ -58,6 +66,7 @@ class PointServiceTest {
      * 3-1. 포인트 충전 테스트,100원이 충전된 사용자 ID에 1000원을 충전시 충전된 포인트1100원을 반환한다.
      */
     @Test
+    @DisplayName("포인트 충전 테스트 - 100원이 충전된 사용자 ID에 1000원을 충전시 충전된 포인트 1100원을 반환한다.")
     void charge_by_id_return_charged_point_1100() {
         // given
         long id = 1L;
@@ -73,6 +82,7 @@ class PointServiceTest {
      * 4. 포인트 충전 테스트, 충전 금액이 음수이거나 0이면 IllegalArgumentException을 발생시킨다.
      */
     @Test
+    @DisplayName("포인트 충전 테스트 - 충전 금액이 음수이거나 0이면 IllegalArgumentException을 발생시킨다.")
     void charge_by_negative_or_zero_amount_throw_exception() {
         // given
         long id = 1L;
@@ -85,6 +95,7 @@ class PointServiceTest {
      * 5. 포인트 사용 테스트, 사용자 ID로 1000원 충전 후 1000원 사용시 0포인트를 반환한다.
      */
     @Test
+    @DisplayName("포인트 사용 테스트 - 사용자 ID로 1000원 충전 후 1000원 사용시 0포인트를 반환한다.")
     void use_by_id_return_zero_point() {
         // given
         long id = 1L;
@@ -96,10 +107,12 @@ class PointServiceTest {
         assertEquals(0, userPoint.point());
     }
 
+
     /**
      * 6. 포인트 사용 테스트, 사용자 ID로 1000원 충전 후 2000원 사용시 IllegalArgumentException을 발생시킨다.
      */
     @Test
+    @DisplayName("포인트 사용 테스트 - 사용자 ID로 1000원 충전 후 2000원 사용시 IllegalArgumentException을 발생시킨다.")
     void use_by_over_point_throw_exception() {
         // given
         long id = 1L;
@@ -113,6 +126,7 @@ class PointServiceTest {
      * 7. 포인트 사용 테스트, 사용자 ID로 1000원 충전 후 500원 사용시 500포인트를 반환한다.
      */
     @Test
+    @DisplayName("포인트 사용 테스트 - 사용자 ID로 1000원 충전 후 500원 사용시 500포인트를 반환한다.")
     void use_by_id_return_remain_point() {
         // given
         long id = 1L;
@@ -128,6 +142,7 @@ class PointServiceTest {
      * 8. 포인트 내역 조회 테스트, 사용자 ID로 조회시 빈 내역을 반환한다.
      */
     @Test
+    @DisplayName("포인트 내역 조회 테스트 - 사용자 ID로 조회시 빈 내역을 반환한다.")
     void history_by_id_return_empty_list() {
         // given
         long id = 1L;
@@ -141,6 +156,7 @@ class PointServiceTest {
      * 9. 포인트 내역 조회 테스트, 사용자 ID로 조회시 내역을 반환한다.
      */
     @Test
+    @DisplayName("포인트 내역 조회 테스트 - 사용자 ID로 조회시 내역을 반환한다.")
     void history_by_id_return_list() {
         // given
         long id = 1L;
@@ -156,6 +172,7 @@ class PointServiceTest {
      * 10. 포인트 내역 조회 테스트, 사용자 ID가 음수이면 IllegalArgumentException을 발생시킨다.
      */
     @Test
+    @DisplayName("포인트 내역 조회 테스트 - 사용자 ID가 음수이면 IllegalArgumentException을 발생시킨다.")
     void history_by_negative_id_throw_exception() {
         // given
         long id = -1L;
@@ -167,6 +184,7 @@ class PointServiceTest {
      * 11. 동시에 여러 건의 포인트 충전 요청이 들어온 경우 순차적으로 처리되어야 한다.
      */
     @Test
+    @DisplayName("동시에 여러 건의 포인트 충전 요청이 들어온 경우 순차적으로 처리되어야 한다.")
     void charge_concurrently() throws InterruptedException {
         // given
         long id = 1L; // 사용자 ID를 설정합니다.

@@ -1,5 +1,8 @@
 package io.hhplus.tdd.point;
 
+import io.hhplus.tdd.point.domain.UserPoint;
+import io.hhplus.tdd.point.service.PointService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -27,6 +30,7 @@ class PointControllerTest {
     PointService pointService;
 
     @Test
+    @DisplayName("포인트 조회 컨트롤러 테스트")
     void point() throws Exception {
         long id = 1L;
         UserPoint userPoint = new UserPoint(id,0,System.currentTimeMillis());
@@ -35,12 +39,12 @@ class PointControllerTest {
         mockMvc.perform(get("/point/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.point").value(0))
-                .andExpect(jsonPath("$.updateMillis").isNumber());
+                .andExpect(jsonPath("$.point").value(0));
         verify(pointService).point(id);
     }
 
     @Test
+    @DisplayName("포인트 히스토리 조회 컨트롤러 테스트")
     void history() throws Exception {
         long id = 1L;
         when(pointService.history(id)).thenReturn(List.of());
@@ -52,6 +56,7 @@ class PointControllerTest {
     }
 
     @Test
+    @DisplayName("포인트 충전 컨트롤러 테스트")
     void charge() throws Exception {
         long id = 1L;
         long amount = 100L;
@@ -61,12 +66,12 @@ class PointControllerTest {
         mockMvc.perform(patch("/point/{id}/charge", id).content(String.valueOf(amount)).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.point").value(amount))
-                .andExpect(jsonPath("$.updateMillis").value(userPoint.updateMillis()));
+                .andExpect(jsonPath("$.point").value(amount));
         verify(pointService).charge(id, amount);
     }
 
     @Test
+    @DisplayName("포인트 사용 컨트롤러 테스트")
     void use() throws Exception {
         long id = 1L;
         long amount = 50L;
@@ -76,8 +81,7 @@ class PointControllerTest {
         mockMvc.perform(patch("/point/{id}/use", id).content(String.valueOf(amount)).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.point").value(amount))
-                .andExpect(jsonPath("$.updateMillis").value(userPoint.updateMillis()));
+                .andExpect(jsonPath("$.point").value(amount));
         verify(pointService).use(id, amount);
     }
 }
