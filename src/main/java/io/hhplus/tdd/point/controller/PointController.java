@@ -1,6 +1,5 @@
 package io.hhplus.tdd.point.controller;
 
-import io.hhplus.tdd.point.domain.PointHistory;
 import io.hhplus.tdd.point.domain.UserPoint;
 import io.hhplus.tdd.point.dto.PointHistoryDTO;
 import io.hhplus.tdd.point.dto.UserPointDTO;
@@ -32,7 +31,7 @@ public class PointController {
             @PathVariable long id
     ) {
         UserPoint userPoint = pointService.point(id);
-        return new UserPointDTO(userPoint.id(), userPoint.point());
+        return new UserPointDTO(userPoint.id(), userPoint.point(), userPoint.updateMillis());
     }
 
     /**
@@ -61,7 +60,7 @@ public class PointController {
             @RequestBody long amount
     ) {
         UserPoint userPoint = pointService.charge(id, amount);
-        return new UserPointDTO(userPoint.id(), userPoint.point());
+        return new UserPointDTO(userPoint.id(), userPoint.point(), userPoint.updateMillis());
     }
 
     /**
@@ -76,6 +75,6 @@ public class PointController {
             @RequestBody long amount
     ) {
         UserPoint userPoint = pointService.use(id, amount);
-        return new UserPointDTO(userPoint.id(), userPoint.point());
+        return new UserPointDTO(userPoint.id(), userPoint.point(), userPoint.updateMillis());
     }
 }

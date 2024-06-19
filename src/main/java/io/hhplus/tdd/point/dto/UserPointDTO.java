@@ -6,13 +6,15 @@ package io.hhplus.tdd.point.dto;
 public class UserPointDTO {
     private long id;
     private long point;
+    private long updateMillis;
 
     public UserPointDTO() {
     }
 
-    public UserPointDTO(long id, long point) {
+    public UserPointDTO(long id, long point, long updateMillis) {
         this.id = id;
         this.point = point;
+        this.updateMillis = updateMillis;
     }
 
     public long getId() {
@@ -29,5 +31,13 @@ public class UserPointDTO {
 
     public void setPoint(long point) {
         this.point = point;
+    }
+
+    public long getUpdateMillis() {
+        return updateMillis;
+    }
+
+    public void setUpdateMillis(long updateMillis) {
+        this.updateMillis = updateMillis;
     }
 }

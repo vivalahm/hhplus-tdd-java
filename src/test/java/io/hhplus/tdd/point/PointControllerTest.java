@@ -39,7 +39,8 @@ class PointControllerTest {
         mockMvc.perform(get("/point/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.point").value(0));
+                .andExpect(jsonPath("$.point").value(0))
+                .andExpect(jsonPath("$.updateMillis").isNumber());
         verify(pointService).point(id);
     }
 
@@ -66,7 +67,8 @@ class PointControllerTest {
         mockMvc.perform(patch("/point/{id}/charge", id).content(String.valueOf(amount)).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.point").value(amount));
+                .andExpect(jsonPath("$.point").value(amount))
+                .andExpect(jsonPath("$.updateMillis").isNumber());
         verify(pointService).charge(id, amount);
     }
 
@@ -81,7 +83,8 @@ class PointControllerTest {
         mockMvc.perform(patch("/point/{id}/use", id).content(String.valueOf(amount)).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.point").value(amount));
+                .andExpect(jsonPath("$.point").value(amount))
+                .andExpect(jsonPath("$.updateMillis").isNumber());
         verify(pointService).use(id, amount);
     }
 }
