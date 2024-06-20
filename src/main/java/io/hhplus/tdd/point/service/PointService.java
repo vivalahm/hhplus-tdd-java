@@ -26,11 +26,7 @@ private final ReentrantLock lock = new ReentrantLock();
      * @return 사용자의 포인트 정보 반환
      */
     public UserPoint point(long id) {
-        if (id < 0) {
-            throw new IllegalArgumentException("사용자 ID는 0보다 커야 합니다.");
-        }
-        Optional<UserPoint> optionalUserPoint = Optional.ofNullable(pointRepository.selectById(id));// 유저 정보를 조회
-        UserPoint userPoint = optionalUserPoint.orElseThrow(() -> new IllegalArgumentException("유저정보가 없습니다."));
+        UserPoint userPoint = getUserPoint(id); // 유저 정보를 조회
         return userPoint;
     }
 
@@ -43,11 +39,7 @@ private final ReentrantLock lock = new ReentrantLock();
     public UserPoint charge(long id, long amount) {
         lock.lock(); // 동시성 문제를 방지하기 위해 락을 사용한다.
         try{
-            if (id < 0) {
-                throw new IllegalArgumentException("사용자 ID는 0보다 커야 합니다.");
-            }
-            Optional<UserPoint> optionalUserPoint = Optional.ofNullable(pointRepository.selectById(id)); // 유저 정보를 조회
-            UserPoint userPoint = optionalUserPoint.orElseThrow(() -> new IllegalArgumentException("유저정보가 없습니다."));
+            UserPoint userPoint = getUserPoint(id);
             if(amount <= 0){
                 throw new IllegalArgumentException("충전 포인트는 0보다 커야 합니다.");
             }
@@ -68,11 +60,7 @@ private final ReentrantLock lock = new ReentrantLock();
     public UserPoint use(long id, long amount) {
         lock.lock(); // 동시성 문제를 방지하기 위해 락을 사용한다.
         try{
-            if (id < 0) {
-                throw new IllegalArgumentException("사용자 ID는 0보다 커야 합니다.");
-            }
-            Optional<UserPoint> optionalUserPoint = Optional.ofNullable(pointRepository.selectById(id));// 유저 정보를 조회
-            UserPoint userPoint = optionalUserPoint.orElseThrow(() -> new IllegalArgumentException("유저정보가 없습니다."));
+            UserPoint userPoint = getUserPoint(id);
             if(amount <= 0){
                 throw new IllegalArgumentException("사용 포인트는 0보다 커야 합니다.");
             }
@@ -87,6 +75,14 @@ private final ReentrantLock lock = new ReentrantLock();
         }
     }
 
+    /**
+     * 포인트 내역을 저장하는 메서드
+     * @param id 사용자 ID
+     * @param amount 포인트 양
+     * @param type 거래 유형
+     * @param updateMillis 업데이트 시간
+     * @return 저장된 포인트 내역
+     */
     public PointHistory insertHistory(long id, long amount, TransactionType type, long updateMillis) {
         if (id < 0) {
             throw new IllegalArgumentException("사용자 ID는 0보다 커야 합니다.");
@@ -94,6 +90,11 @@ private final ReentrantLock lock = new ReentrantLock();
         return pointRepository.insertHistory(id, amount, type, updateMillis);
     }
 
+    /**
+     * 사용자의 포인트 내역을 조회하는 메서드
+     * @param id 사용자 ID
+     * @return 사용자의 포인트 내역
+     */
     public List<PointHistory> history(long id) {
         if (id < 0) {
             throw new IllegalArgumentException("사용자 ID는 0보다 커야 합니다.");
@@ -101,5 +102,21 @@ private final ReentrantLock lock = new ReentrantLock();
         Optional<UserPoint> optionalUserPoint = Optional.ofNullable(pointRepository.selectById(id));
         optionalUserPoint.orElseThrow(() -> new IllegalArgumentException("유저정보가 없습니다."));
         return pointRepository.selectHistoriesById(id);
+    }
+
+    //-----------------------------------------------중복 메서드--------------------------------------------------------
+
+    /**
+     * 사용자 정보를 조회하는 메서드
+     * @param id
+     * @return
+     */
+     private UserPoint getUserPoint(long id) {
+        if (id < 0) {
+            throw new IllegalArgumentException("사용자 ID는 0보다 커야 합니다.");
+        }
+        Optional<UserPoint> optionalUserPoint = Optional.ofNullable(pointRepository.selectById(id)); // 유저 정보를 조회
+        UserPoint userPoint = optionalUserPoint.orElseThrow(() -> new IllegalArgumentException("유저정보가 없습니다."));
+        return userPoint;
     }
 }
