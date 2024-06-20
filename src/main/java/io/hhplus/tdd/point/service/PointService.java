@@ -25,7 +25,7 @@ private final ReentrantLock lock = new ReentrantLock();
      * @param id 사용자 ID
      * @return 사용자의 포인트 정보 반환
      */
-    public UserPoint point(long id) {
+    public UserPoint getPoint(long id) {
         UserPoint userPoint = getUserPoint(id); // 유저 정보를 조회
         return userPoint;
     }
@@ -36,7 +36,7 @@ private final ReentrantLock lock = new ReentrantLock();
      * @param amount 충전할 포인트 양
      * @return 충전 후 유저의 현재 포인트
      */
-    public UserPoint charge(long id, long amount) {
+    public UserPoint chargePoint(long id, long amount) {
         lock.lock(); // 동시성 문제를 방지하기 위해 락을 사용한다.
         try{
             UserPoint userPoint = getUserPoint(id);
@@ -57,7 +57,7 @@ private final ReentrantLock lock = new ReentrantLock();
      * @param amount 사용할 포인트 양
      * @return 사용 후 유저의 현재 포인트
      */
-    public UserPoint use(long id, long amount) {
+    public UserPoint usePoint(long id, long amount) {
         lock.lock(); // 동시성 문제를 방지하기 위해 락을 사용한다.
         try{
             UserPoint userPoint = getUserPoint(id);
@@ -95,7 +95,7 @@ private final ReentrantLock lock = new ReentrantLock();
      * @param id 사용자 ID
      * @return 사용자의 포인트 내역
      */
-    public List<PointHistory> history(long id) {
+    public List<PointHistory> getHistory(long id) {
         if (id < 0) {
             throw new IllegalArgumentException("사용자 ID는 0보다 커야 합니다.");
         }

@@ -30,7 +30,7 @@ public class PointController {
     public UserPointDTO point(
             @PathVariable long id
     ) {
-        UserPoint userPoint = pointService.point(id);
+        UserPoint userPoint = pointService.getPoint(id);
         return new UserPointDTO(userPoint.id(), userPoint.point(), userPoint.updateMillis());
     }
 
@@ -43,7 +43,7 @@ public class PointController {
     public List<PointHistoryDTO> history(
             @PathVariable long id
     ) {
-        return pointService.history(id).stream()
+        return pointService.getHistory(id).stream()
                 .map(history -> new PointHistoryDTO(history.id(), history.userId(), history.amount(), history.type(), history.updateMillis()))
                 .collect(Collectors.toList());
     }
@@ -59,7 +59,7 @@ public class PointController {
             @PathVariable long id,
             @RequestBody long amount
     ) {
-        UserPoint userPoint = pointService.charge(id, amount);
+        UserPoint userPoint = pointService.chargePoint(id, amount);
         return new UserPointDTO(userPoint.id(), userPoint.point(), userPoint.updateMillis());
     }
 
@@ -74,7 +74,7 @@ public class PointController {
             @PathVariable long id,
             @RequestBody long amount
     ) {
-        UserPoint userPoint = pointService.use(id, amount);
+        UserPoint userPoint = pointService.usePoint(id, amount);
         return new UserPointDTO(userPoint.id(), userPoint.point(), userPoint.updateMillis());
     }
 }
