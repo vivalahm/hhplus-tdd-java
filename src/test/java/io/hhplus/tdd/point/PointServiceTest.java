@@ -7,6 +7,9 @@ import io.hhplus.tdd.point.service.PointService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -15,10 +18,14 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)//각 테스트 메서드 실행 후 컨텍스트를 다시 로드한다
 class PointServiceTest {
+    @Autowired
     private PointService pointService;
-    private final PointRepository pointRepository = new PointRepositoryImpl();
 
+    @Autowired
+    private PointRepository pointRepository;
     @BeforeEach
     void setUp() {
         pointService = new PointService(pointRepository);
