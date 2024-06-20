@@ -70,7 +70,7 @@ private final ReentrantLock lock = new ReentrantLock();
             userPoint = pointRepository.insertOrUpdate(id, userPoint.point() - amount);
             return userPoint;
         }finally {
-            insertHistory(id, amount, TransactionType.CHARGE, System.currentTimeMillis());// 사용 내역을 저장
+            insertHistory(id, amount, TransactionType.USE, System.currentTimeMillis());// 사용 내역을 저장
             lock.unlock();// 작업이 끝난 후 락을 해제
         }
     }
