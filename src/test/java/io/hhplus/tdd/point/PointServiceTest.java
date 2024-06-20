@@ -9,6 +9,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -187,30 +190,107 @@ class PointServiceTest {
     @DisplayName("동시에 여러 건의 포인트 충전 요청이 들어온 경우 순차적으로 처리되어야 한다.")
     void charge_Point_concurrently() throws InterruptedException {
         // given
-        long id = 1L; // 사용자 ID를 설정합니다.
-        long amount = 100L; // 충전하고 사용할 포인트의 양을 설정합니다.
-        CountDownLatch chargeLatch = new CountDownLatch(1); // 충전 작업이 완료되었음을 알리는 래치입니다.
-        CountDownLatch allLatch = new CountDownLatch(2); // 모든 작업이 완료되었음을 알리는 래치입니다.
+        long id = 1L; // 사용자 ID를 설정
+        long amount = 100L; // 충전하고 사용할 포인트의 양을 설정
+        //CountDownLatch를 사용하여 스레드 간의 동기화를 관리
+        CountDownLatch chargeLatch = new CountDownLatch(1); // chargeLatch는 충전 작업의 완료를 기다리는 역할
+        CountDownLatch allLatch = new CountDownLatch(2); // allLatch는 모든 작업(충전 및 사용)이 완료될 때까지 기다리는 역할
 
         // when
         new Thread(() -> { // 새로운 스레드에서
             pointService.chargePoint(id, amount); // 포인트를 충전하고,
-            chargeLatch.countDown(); // 충전 작업이 완료되었음을 알립니다.
-            allLatch.countDown(); // 이 스레드의 작업이 완료되었음을 알립니다.
+            chargeLatch.countDown(); // 충전이 완료되면 chargeLatch를 감소시켜 다른 스레드가 충전 완료를 인지할 수 있게 한다.
+            allLatch.countDown(); // 이 스레드의 작업이 완료되었음을 알린다.
         }).start();
 
         new Thread(() -> { // 또 다른 새로운 스레드에서
             try {
-                chargeLatch.await(); // 충전 작업이 완료될 때까지 기다립니다.
-                pointService.usePoint(id, amount); // 그리고 포인트를 사용합니다.
+                chargeLatch.await(); // chargeLatch.await()를 호출하여 첫 번째 스레드의 충전 작업이 완료될 때까지 기다린다.
+                pointService.usePoint(id, amount); // 그리고 포인트를 사용한다.
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); // 인터럽트가 발생하면 현재 스레드를 인터럽트 상태로 설정합니다.
+                Thread.currentThread().interrupt(); // 인터럽트가 발생하면 현재 스레드를 인터럽트 상태로 설정한다.
             }
-            allLatch.countDown(); // 이 스레드의 작업이 완료되었음을 알립니다.
+            allLatch.countDown(); // 이 스레드의 작업이 완료되었음을 알린다.
         }).start();
 
         // then
-        allLatch.await(); // 모든 작업이 완료될 때까지 기다립니다.
-        assertEquals(0, pointService.getPoint(id).point()); // 그리고 사용자의 포인트가 0인지 확인합니다.
+        allLatch.await(); // 모든 작업이 완료될 때까지 기다린다.
+        assertEquals(0, pointService.getPoint(id).point()); // 그리고 사용자의 포인트가 0인지 확인한다.
+    }
+    @Test
+    @DisplayName("포인트 증가 동시성 테스트")
+    public void test_concurrent_point_increment() throws InterruptedException {
+        int numberOfThreads = 10; //동시성을 테스트하기 위해 10개의 스레드를 가진 고정된 스레드 풀을 생성
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads); // 스레드 풀 생성
+
+        Runnable task = () -> {
+            pointService.chargePoint(1L, 1); // 포인트 증가 메서드 호출
+            // 각 쓰레드가 1포인트씩 증가시키는 작업을 수행
+        };
+
+        for (int i = 0; i < numberOfThreads; i++) {
+            executorService.submit(task); // 정의한 작업을 10개의 스레드에 제출
+        }
+
+        // 모든 스레드가 작업을 완료할 때까지 대기
+        executorService.shutdown();
+        executorService.awaitTermination(1, TimeUnit.MINUTES);
+
+        // 포인트 값 검증
+        int expectedPoints = numberOfThreads;//총 쓰레드 개수
+        long actualPoints = pointService.getPoint(1L).point(); //모두 성공했다면 10이 나와야 함
+        assertEquals(expectedPoints, actualPoints, "동시성 테스트 실패: 예상 포인트 값과 실제 포인트 값이 다릅니다.");
+    }
+
+    @Test
+    @DisplayName("포인트 감소 동시성 테스트")
+    public void test_concurrent_point_decrement() throws InterruptedException {
+        int numberOfThreads = 10; //동시성을 테스트하기 위해 10개의 스레드를 가진 고정된 스레드 풀을 생성
+        pointService.chargePoint(1L, numberOfThreads); // 10포인트를 충전
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads); // 스레드 풀 생성
+
+        Runnable task = () -> {
+            pointService.usePoint(1L, 1); // 포인트 감소 메서드 호출
+            // 각 쓰레드가 1포인트씩 감소시키는 작업을 수행
+        };
+
+        for (int i = 0; i < numberOfThreads; i++) {
+            executorService.submit(task); // 정의한 작업을 10개의 스레드에 제출
+        }
+
+        // 모든 스레드가 작업을 완료할 때까지 대기
+        executorService.shutdown();
+        executorService.awaitTermination(1, TimeUnit.MINUTES);
+
+        // 포인트 값 검증
+        int expectedPoints = 0;//총 쓰레드 개수
+        long actualPoints = pointService.getPoint(1L).point(); //모두 성공했다면 0이 나와야 함
+        assertEquals(expectedPoints, actualPoints, "동시성 테스트 실패: 예상 포인트 값과 실제 포인트 값이 다릅니다.");
+    }
+
+    @Test
+    @DisplayName("포인트 충전/사용 동시성 테스트")
+    public void test_concurrent_point_charge_use() throws InterruptedException {
+        int numberOfThreads = 10; //동시성을 테스트하기 위해 10개의 스레드를 가진 고정된 스레드 풀을 생성
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads); // 스레드 풀 생성
+
+        Runnable task = () -> {
+            pointService.chargePoint(1L, 1); // 포인트 증가 메서드 호출
+            pointService.usePoint(1L, 1); // 포인트 감소 메서드 호출
+            // 각 쓰레드가 1포인트씩 증가하고 감소하는 작업을 수행
+        };
+
+        for (int i = 0; i < numberOfThreads; i++) {
+            executorService.submit(task); // 정의한 작업을 10개의 스레드에 제출
+        }
+
+        // 모든 스레드가 작업을 완료할 때까지 대기
+        executorService.shutdown();
+        executorService.awaitTermination(1, TimeUnit.MINUTES);
+
+        // 포인트 값 검증
+        int expectedPoints = 0;//총 쓰레드 개수
+        long actualPoints = pointService.getPoint(1L).point(); //모두 성공했다면 0이 나와야 함
+        assertEquals(expectedPoints, actualPoints, "동시성 테스트 실패: 예상 포인트 값과 실제 포인트 값이 다릅니다.");
     }
 }
